@@ -60,15 +60,6 @@ mod tests {
     #[derive(Clone, Debug)]
     struct RandomIntegersWithTwoDuplicates(Vec<i32>);
 
-    #[derive(Clone, Debug)]
-    struct RandomStringsWithTwoDuplicates(Vec<String>);
-
-    #[derive(Clone, Debug)]
-    struct InvalidInput(String);
-
-    #[derive(Clone, Debug)]
-    struct ValidInput(String);
-
     impl Arbitrary for RandomIntegersWithTwoDuplicates {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
             let random_values: [i32; 4] = Faker.fake_with_rng(g);
@@ -77,6 +68,9 @@ mod tests {
             Self(random_values.to_vec())
         }
     }
+
+    #[derive(Clone, Debug)]
+    struct RandomStringsWithTwoDuplicates(Vec<String>);
 
     impl Arbitrary for RandomStringsWithTwoDuplicates {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
@@ -89,12 +83,18 @@ mod tests {
         }
     }
 
+    #[derive(Clone, Debug)]
+    struct InvalidInput(String);
+
     impl Arbitrary for InvalidInput {
         fn arbitrary<G: Gen>(_g: &mut G) -> Self {
             let invalid_inputs = ["", "c", "+123,", "123,345,,45"];
             Self(invalid_inputs[rand::thread_rng().gen_range(0..invalid_inputs.len())].to_string())
         }
     }
+
+    #[derive(Clone, Debug)]
+    struct ValidInput(String);
 
     impl Arbitrary for ValidInput {
         fn arbitrary<G: Gen>(_g: &mut G) -> Self {
