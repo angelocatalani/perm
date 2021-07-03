@@ -114,7 +114,6 @@ impl<T> AsMut<Vec<[usize; 128]>> for OptimizedChunk<T> {
     }
 }
 
-
 impl<T: ToString> fmt::Display for OptimizedChunk<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         self.permutations_compressed
