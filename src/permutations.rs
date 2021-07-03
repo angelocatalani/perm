@@ -98,7 +98,7 @@ mod tests {
 
     impl Arbitrary for ValidInput {
         fn arbitrary<G: Gen>(_g: &mut G) -> Self {
-            let invalid_inputs = [
+            let valid_inputs = [
                 "1",
                 "1\n",
                 "1,2",
@@ -108,7 +108,7 @@ mod tests {
                 "1.12",
                 "-1.23,+12",
             ];
-            Self(invalid_inputs[rand::thread_rng().gen_range(0..invalid_inputs.len())].to_string())
+            Self(valid_inputs[rand::thread_rng().gen_range(0..valid_inputs.len())].to_string())
         }
     }
 
