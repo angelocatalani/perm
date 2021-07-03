@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::hash::Hash;
 
 use into_chunks::IntoChunks;
@@ -10,7 +11,7 @@ pub struct Permutations<T: Copy> {
     values: Vec<T>,
 }
 
-impl<T: Copy + Eq + Hash + ToString> Permutations<T> {
+impl<T: Copy + Eq + Hash> Permutations<T> {
     pub fn new(values: Vec<T>) -> Self {
         Self { values }
     }
@@ -25,6 +26,24 @@ impl<T: Copy + Eq + Hash + ToString> Permutations<T> {
             panic!("Chunks size must be at least one")
         }
         IntoChunks::new(self.values, size)
+    }
+}
+
+impl<'a> TryFrom<&'a str> for Permutations<&'a str> {
+    type Error = String;
+
+    fn try_from(text: &'a str) -> Result<Self, Self::Error> {
+        text.split(',')
+            .try_fold(Vec::new(), |acc, number| {
+                if number.trim().parse::<f64>().is_ok() {
+                    let mut new_vec = acc.clone();
+                    new_vec.push(number.trim());
+                    Ok(new_vec)
+                } else {
+                    Err(format!("`{}` is not a valid number", number))
+                }
+            })
+            .map(Permutations::new)
     }
 }
 
@@ -44,6 +63,12 @@ mod tests {
     #[derive(Clone, Debug)]
     struct RandomStringsWithTwoDuplicates(Vec<String>);
 
+    #[derive(Clone, Debug)]
+    struct InvalidInput(String);
+
+    #[derive(Clone, Debug)]
+    struct ValidInput(String);
+
     impl Arbitrary for RandomIntegersWithTwoDuplicates {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
             let random_values: [i32; 4] = Faker.fake_with_rng(g);
@@ -61,6 +86,29 @@ mod tests {
                 values.push(random_values[rand::thread_rng().gen_range(0..4)].clone())
             });
             Self(random_values.to_vec())
+        }
+    }
+
+    impl Arbitrary for InvalidInput {
+        fn arbitrary<G: Gen>(_g: &mut G) -> Self {
+            let invalid_inputs = ["", "c", "+123,", "123,345,,45"];
+            Self(invalid_inputs[rand::thread_rng().gen_range(0..invalid_inputs.len())].to_string())
+        }
+    }
+
+    impl Arbitrary for ValidInput {
+        fn arbitrary<G: Gen>(_g: &mut G) -> Self {
+            let invalid_inputs = [
+                "1",
+                "1\n",
+                "1,2",
+                "1,2\n",
+                "-1",
+                "+1,-1",
+                "1.12",
+                "-1.23,+12",
+            ];
+            Self(invalid_inputs[rand::thread_rng().gen_range(0..invalid_inputs.len())].to_string())
         }
     }
 
@@ -86,6 +134,30 @@ mod tests {
             .collect::<Vec<String>>();
         correct_permutations_strings.sort();
         correct_permutations_strings
+    }
+
+    #[quickcheck_macros::quickcheck]
+    fn invalid_input_is_detected(invalid_input: InvalidInput) {
+        assert!(Permutations::try_from(invalid_input.0.as_str()).is_err());
+    }
+
+    #[quickcheck_macros::quickcheck]
+    fn valid_input_is_parsed_correctly(valid_input: ValidInput) {
+        let permutations = Permutations::try_from(valid_input.0.as_str()).unwrap();
+        let mut permutation_strings = permutations
+            .into_chunks(1)
+            .map(|p| p.to_string())
+            .collect::<Vec<String>>();
+        permutation_strings.sort();
+
+        let tokens = valid_input
+            .0
+            .split(',')
+            .map(|t| t.trim().to_string())
+            .collect::<Vec<String>>();
+        let mut expected_permutations = generate_correct_permutations(tokens);
+        expected_permutations.sort();
+        assert_eq!(permutation_strings, expected_permutations)
     }
 
     #[quickcheck_macros::quickcheck]

@@ -16,7 +16,7 @@ name = "benchmark"
 harness = false
 
 [dev-dependencies]
-criterion = {version="0.3"}
+criterion = { version = "0.3" }
 fake = "~2.3"
 itertools = "0.10.0"
 quickcheck = "0.9.2"

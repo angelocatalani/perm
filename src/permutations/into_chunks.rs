@@ -7,6 +7,7 @@ pub struct IntoChunks<T> {
     job_queue: Vec<Job<T>>,
     size: usize,
 }
+
 impl<T: Copy + Eq + Hash> IntoChunks<T> {
     pub(crate) fn new(values: Vec<T>, size: usize) -> Self {
         let permutation_length = values.len();
@@ -16,6 +17,7 @@ impl<T: Copy + Eq + Hash> IntoChunks<T> {
         }
     }
 }
+
 impl<T: Copy + Eq + Hash> Iterator for IntoChunks<T> {
     type Item = Chunk<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -46,6 +48,7 @@ impl<T: Copy + Eq + Hash> Iterator for IntoChunks<T> {
         }
     }
 }
+
 fn values_with_frequency<T: Eq + Hash>(values: Vec<T>) -> HashMap<T, usize> {
     let mut values_with_frequency = HashMap::new();
     for value in values {
@@ -105,6 +108,7 @@ struct Job<T> {
     permutation: Vec<T>,
     permutation_length: usize,
 }
+
 impl<T: Copy + Eq + Hash> Job<T> {
     fn new(values_with_frequency: HashMap<T, usize>, permutation_length: usize) -> Self {
         Self {

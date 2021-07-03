@@ -3,7 +3,9 @@ use std::fmt;
 use std::hash::Hash;
 
 const PERMUTATION_FIXED_LENGTH: usize = 128;
+
 type FixedArray = [usize; PERMUTATION_FIXED_LENGTH];
+
 fn zeroed_fixed_array() -> FixedArray {
     [0; PERMUTATION_FIXED_LENGTH]
 }
@@ -14,6 +16,7 @@ pub struct IntoOptimizedChunks<T> {
     index_to_value: HashMap<usize, T>,
     permutation_size: usize,
 }
+
 impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
     pub(crate) fn new(values: Vec<T>, size: usize) -> Result<Self, String> {
         if values.len() > PERMUTATION_FIXED_LENGTH {
@@ -34,6 +37,7 @@ impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
         })
     }
 }
+
 impl<T: Copy> Iterator for IntoOptimizedChunks<T> {
     type Item = OptimizedChunk<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -67,6 +71,7 @@ impl<T: Copy> Iterator for IntoOptimizedChunks<T> {
         }
     }
 }
+
 fn compress_values<T: Copy + Eq + Hash>(values: Vec<T>) -> (FixedArray, HashMap<usize, T>) {
     let mut value_to_index = HashMap::new();
     let mut i_th_distinct_value: usize = 0;
@@ -108,6 +113,7 @@ impl<T> OptimizedChunk<T> {
         self.permutations_compressed.is_empty()
     }
 }
+
 impl<T> AsMut<Vec<[usize; 128]>> for OptimizedChunk<T> {
     fn as_mut(&mut self) -> &mut Vec<[usize; 128]> {
         &mut self.permutations_compressed
@@ -137,12 +143,14 @@ impl<T: ToString> fmt::Display for OptimizedChunk<T> {
             })
     }
 }
+
 #[derive(Copy, Clone)]
 struct OptimizedJob {
     compressed_values: FixedArray,
     compressed_permutation: FixedArray,
     permutation_length: usize,
 }
+
 impl OptimizedJob {
     fn new(compressed_values: FixedArray) -> Self {
         Self {
