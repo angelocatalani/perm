@@ -4,6 +4,8 @@ use std::hash::Hash;
 use into_chunks::IntoChunks;
 use into_optimized_chunks::IntoOptimizedChunks;
 
+use crate::permutations::into_optimized_chunks::PERMUTATION_FIXED_LENGTH;
+
 pub mod into_chunks;
 pub mod into_optimized_chunks;
 
@@ -15,9 +17,19 @@ impl<T: Copy + Eq + Hash> Permutations<T> {
     pub fn new(values: Vec<T>) -> Self {
         Self { values }
     }
-    pub fn into_optimized_chunks(self, size: usize) -> Result<IntoOptimizedChunks<T>, String> {
+    pub fn length(&self) -> usize {
+        self.values.len()
+    }
+    pub fn can_be_optimized(&self) -> bool {
+        self.values.len() <= PERMUTATION_FIXED_LENGTH
+    }
+
+    pub fn into_optimized_chunks(self, size: usize) -> IntoOptimizedChunks<T> {
         if size == 0 {
             panic!("Chunks size must be at least one")
+        }
+        if !self.can_be_optimized() {
+            panic!("Cannot use optimized_chunks because the permutation is: `{}` and the maximum length is: {}", self.values.len(), PERMUTATION_FIXED_LENGTH)
         }
         IntoOptimizedChunks::new(self.values, size)
     }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
 
-const PERMUTATION_FIXED_LENGTH: usize = 128;
+pub(crate) const PERMUTATION_FIXED_LENGTH: usize = 128;
 
 type FixedArray = [usize; PERMUTATION_FIXED_LENGTH];
 
@@ -18,23 +18,16 @@ pub struct IntoOptimizedChunks<T> {
 }
 
 impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
-    pub(crate) fn new(values: Vec<T>, size: usize) -> Result<Self, String> {
-        if values.len() > PERMUTATION_FIXED_LENGTH {
-            return Err(format!(
-                "Maximum permutations size is: {} (found: {})",
-                PERMUTATION_FIXED_LENGTH,
-                values.len()
-            ));
-        }
+    pub(crate) fn new(values: Vec<T>, size: usize) -> Self {
         let permutation_size = values.len();
         let (compressed_values, index_to_value) = compress_values(values);
 
-        Ok(Self {
+        Self {
             job_queue: vec![OptimizedJob::new(compressed_values)],
             size,
             index_to_value,
             permutation_size,
-        })
+        }
     }
 }
 

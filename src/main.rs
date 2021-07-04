@@ -1,56 +1,80 @@
-use perm::{IntoOptimizedChunks, Permutations};
+use std::cmp::max;
 use std::convert::TryInto;
 use std::io::{self, BufRead, Write};
-use std::sync::Arc;
-use std::thread;
-use std::thread::JoinHandle;
+
+use perm::{IntoChunks, IntoOptimizedChunks, Permutations};
+
+const OPTIMAL_THREADS_NUMBER: usize = 256;
 
 fn main() {
-    let v = 1;
-    let v = v.clone();
     let reader = io::stdin();
 
-    let input = reader
+    let text = reader
         .lock()
         .lines()
         .next()
         .expect("Empty input")
         .expect("Error reading input");
-    let c = input.as_str();
+    let input = text.as_str();
 
-    let p: Permutations<String> = input.try_into().unwrap();
+    let permutations: Permutations<&str> = input.try_into().expect("Error reading input text");
 
-    let r = match p.try_into_optimized_chunks(10) {
-        Ok(optimized_iterator) => optimized_iterator
+    let chunk_size = max(
+        16,
+        factorial(permutations.length()) / OPTIMAL_THREADS_NUMBER,
+    );
+    if permutations.can_be_optimized() {
+        eprintln!("Using optimized iterator");
+        generate_optimized_permutations(permutations.into_optimized_chunks(chunk_size))
+    } else {
+        eprintln!("Using normal iterator");
+        generate_permutations(permutations.into_chunks(chunk_size))
+    }
+}
+
+fn factorial(n: usize) -> usize {
+    if n == 0 {
+        1
+    } else {
+        factorial(n - 1) * n
+    }
+}
+
+fn generate_optimized_permutations(iterator: IntoOptimizedChunks<&str>) {
+    crossbeam::scope(|scope| {
+        let handles = iterator
             .map(|chunk| {
-                thread::spawn(move || {
+                scope.spawn(move |_| {
                     io::stdout()
                         .write_all(chunk.to_string().as_ref())
                         .expect("Error writing data")
                 })
             })
-            .collect::<Vec<JoinHandle<()>>>(),
-        Err(e) => {
-            todo!()
-            //eprint!("Cannot use optimized permutations: {}\n. Using normal permutations",e);
-            //p.into_chunks(10).map(|c|output_chunk_new_thread(io::stdout(),c)).collect::<Vec<JoinHandle<()>>>()
-        }
-    };
-    r.into_iter().for_each(|h| {
-        h.join();
+            .collect::<Vec<_>>();
+
+        handles.into_iter().for_each(|v| {
+            v.join()
+                .expect("Error waiting optimized_permutations to terminate");
+        })
     })
+    .expect("Error generating optimized permutations")
 }
 
-fn output_chunk_new_thread<
-    W: 'static + Write + Send + Sync,
-    T: 'static + ToString + Send + Sync,
->(
-    mut writer: W,
-    chunk: T,
-) -> JoinHandle<()> {
-    thread::spawn(move || {
-        writer
-            .write_all(chunk.to_string().as_ref())
-            .expect("Error writing data")
+fn generate_permutations(iterator: IntoChunks<&str>) {
+    crossbeam::scope(|scope| {
+        let handles = iterator
+            .map(|chunk| {
+                scope.spawn(move |_| {
+                    io::stdout()
+                        .write_all(chunk.to_string().as_ref())
+                        .expect("Error writing data")
+                })
+            })
+            .collect::<Vec<_>>();
+        handles.into_iter().for_each(|v| {
+            v.join()
+                .expect("Error waiting generate_permutations to terminate");
+        })
     })
+    .expect("Error generating permutations")
 }
