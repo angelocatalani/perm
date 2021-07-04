@@ -59,7 +59,6 @@ impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
 }
 
 /// The iterator implementation to generate a single chunk of permutations.
-/// It implements a breadth-first-search.
 /// It terminates when the chunk is full
 /// or there are no more permutations (the `job_queue` is empty).
 impl<T: Copy> Iterator for IntoOptimizedChunks<T> {
