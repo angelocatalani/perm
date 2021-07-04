@@ -1,3 +1,28 @@
+//! # Optimized Iterator
+//!
+//! `IntoOptimizedChunks` is an optimized iterator over `OptimizedChunks`of permutations.
+//!
+//! It is more efficient than `IntoChunks` because it store each computation,
+//! in a fixed array that is stack allocated and efficiently copied from one job,
+//! to the other
+//!
+//! Since each `OptimizedJob` must have a map with the frequency of each value,
+//! to avoid using the heap allocated map, the original input in each `OptimizedJob`
+//! is represented as an array where the index is the id of the original value,
+//! and the frequency is the value stored in the index.
+//!
+//! Each `OptimizedChunks` has a map with the mapping between the index and the original value.
+//! Since we have one `OptimizedChunks` for many permutations, the cost to allocate the map,
+//! is negligible.
+//!
+//! This code can be further improved storing chunks of permutation in a fixed array,
+// rather than on the heap allocated vector.
+//!
+//! `OptimizedChunks` is a sequence of permutations-
+//! It is a `Display` to be written to output.
+//! It is a `AsMut` to be updated with new permutations.
+//!
+//! `OptimizedJob` is the computational node to create a new permutation.
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
@@ -10,13 +35,15 @@ fn zeroed_fixed_array() -> FixedArray {
     [0; PERMUTATION_FIXED_LENGTH]
 }
 
+/// Optimized iterator over `OptimizedChunks`.
 pub struct IntoOptimizedChunks<T> {
     job_queue: Vec<OptimizedJob>,
     size: usize,
     index_to_value: HashMap<usize, T>,
     permutation_size: usize,
 }
-
+// Initialize the iterator with the `job_queue` containing the root `OptimizedJob`.
+/// The root `OptimizedJob` has the compressed form of the original input value..
 impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
     pub(crate) fn new(values: Vec<T>, size: usize) -> Self {
         let permutation_size = values.len();
@@ -31,6 +58,10 @@ impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
     }
 }
 
+/// The iterator implementation to generate a single chunk of permutations.
+/// It implements a breadth-first-search.
+/// It terminates when the chunk is full
+/// or there are no more permutations (the `job_queue` is empty).
 impl<T: Copy> Iterator for IntoOptimizedChunks<T> {
     type Item = OptimizedChunk<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -65,6 +96,9 @@ impl<T: Copy> Iterator for IntoOptimizedChunks<T> {
     }
 }
 
+/// Compress the `values` into a fixed array: `A`, and generate a map: `H` to decode it.
+/// The fixed array is such that at a given index: `i`:
+/// `A[i]` is the frequency of `H[i]` in `values`, if `i` is a key present in `H`.
 fn compress_values<T: Copy + Eq + Hash>(values: Vec<T>) -> (FixedArray, HashMap<usize, T>) {
     let mut value_to_index = HashMap::new();
     let mut i_th_distinct_value: usize = 0;
@@ -82,9 +116,11 @@ fn compress_values<T: Copy + Eq + Hash>(values: Vec<T>) -> (FixedArray, HashMap<
     }
     (compressed_values, index_to_value)
 }
-
+/// Optimized chunks of compressed permutations.
 pub struct OptimizedChunk<T> {
+    /// the vector of compressed permutations
     permutations_compressed: Vec<FixedArray>,
+    /// the map to decode compressed permutations
     index_to_value: HashMap<usize, T>,
     permutation_size: usize,
     size: usize,
@@ -112,7 +148,8 @@ impl<T> AsMut<Vec<[usize; 128]>> for OptimizedChunk<T> {
         &mut self.permutations_compressed
     }
 }
-
+/// `Chunk` is a `Display` because it must be outputted.
+/// This is where the `index_to_value` mapping to decode a compressed permutation is used.
 impl<T: ToString> fmt::Display for OptimizedChunk<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         self.permutations_compressed
@@ -137,14 +174,22 @@ impl<T: ToString> fmt::Display for OptimizedChunk<T> {
     }
 }
 
+/// The computational unit.
 #[derive(Copy, Clone)]
 struct OptimizedJob {
+    /// the remaining compressed values to use.
     compressed_values: FixedArray,
+    /// the current compressed permutation
     compressed_permutation: FixedArray,
+    /// this is the current permutation length.
+    /// it is not the target permutation length.
+    /// it is used to find the next index of `compressed_permutation`
+    /// to add a new value
     permutation_length: usize,
 }
 
 impl OptimizedJob {
+    /// Initialize a new `OptimizedJob`.
     fn new(compressed_values: FixedArray) -> Self {
         Self {
             compressed_values,
@@ -153,6 +198,9 @@ impl OptimizedJob {
         }
     }
 
+    /// Given a parent `OptimizedJob`, it is possible to generate new jobs,
+    /// with one more value in `compressed_permutation`
+    /// and a decreased frequency in `compressed_values`.
     fn compute_next_jobs(self) -> Vec<OptimizedJob> {
         let mut result = vec![];
 
@@ -164,14 +212,9 @@ impl OptimizedJob {
         result
     }
 
-    fn is_ready(&self) -> bool {
-        self.compressed_values.eq(&zeroed_fixed_array())
-    }
-
-    fn permutation(self) -> FixedArray {
-        self.compressed_permutation
-    }
-
+    /// Create a new `OptimizedJob` given a new `value` to add inside the `compressed_permutation`,
+    /// at index: `permutation_length`.
+    /// The frequency of the `value` must be decreased in the new `OptimizedJob` instance.
     fn with_new_value(&self, value: &usize) -> Self {
         let mut frequencies = self.compressed_values;
         frequencies[*value] -= 1;
@@ -183,5 +226,19 @@ impl OptimizedJob {
         new_job.compressed_permutation = new_permutation;
         new_job.permutation_length = self.permutation_length + 1;
         new_job
+    }
+    /// Check if the `OptimizedJob` has found a permutation,
+    /// and consequently it cannot generate any children jobs.
+    /// This happens when the frequency of each value is zero,
+    /// and consequently `compressed_values` has all only zeros.
+    fn is_ready(&self) -> bool {
+        self.compressed_values.eq(&zeroed_fixed_array())
+    }
+
+    /// Get the permutation generated by the `OptimizedJob`.
+    /// It is a valid permutation of correct length
+    /// only if `is_ready()` is true.
+    fn permutation(self) -> FixedArray {
+        self.compressed_permutation
     }
 }

@@ -1,3 +1,7 @@
+//! # Permutation
+//!
+//! Parse the input string and generate the iterator over chunks of permutations.
+
 use std::convert::TryFrom;
 use std::hash::Hash;
 
@@ -9,21 +13,27 @@ use crate::permutations::into_optimized_chunks::PERMUTATION_FIXED_LENGTH;
 pub mod into_chunks;
 pub mod into_optimized_chunks;
 
+/// Permutations.
 pub struct Permutations<T: Copy> {
     values: Vec<T>,
 }
 
 impl<T: Copy + Eq + Hash> Permutations<T> {
+    /// Initialize a new `Permutations` with the values to permute.
     pub fn new(values: Vec<T>) -> Self {
         Self { values }
     }
+    /// Compute the length of each permutation.
     pub fn length(&self) -> usize {
         self.values.len()
     }
+    /// Check if the input values is short enough to use the optimized version of the algorithm.
     pub fn can_be_optimized(&self) -> bool {
         self.values.len() <= PERMUTATION_FIXED_LENGTH
     }
-
+    /// Create the optimized iterator over chunks of permutations.
+    /// Panics if the chunk size is zero
+    /// or the input values are not short enough to use the optimized version of the algorithm.
     pub fn into_optimized_chunks(self, size: usize) -> IntoOptimizedChunks<T> {
         if size == 0 {
             panic!("Chunks size must be at least one")
@@ -33,6 +43,8 @@ impl<T: Copy + Eq + Hash> Permutations<T> {
         }
         IntoOptimizedChunks::new(self.values, size)
     }
+    /// Create the slower iterator over chunks of permutations
+    /// with no limitations of permutation length.
     pub fn into_chunks(self, size: usize) -> IntoChunks<T> {
         if size == 0 {
             panic!("Chunks size must be at least one")
@@ -41,6 +53,8 @@ impl<T: Copy + Eq + Hash> Permutations<T> {
     }
 }
 
+/// Initialize the `Permutations` from a given string.
+/// It fails if the input is not a string of comma separated numbers.
 impl<'a> TryFrom<&'a str> for Permutations<&'a str> {
     type Error = String;
 

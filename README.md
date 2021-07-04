@@ -27,7 +27,7 @@
 
 ## Usage
 
-First clone the repository and enter the project directory:
+Clone the repository and enter the project directory:
 ```shell
 git clone git@github.com:angelocatalani/perm.git
 cd perm
@@ -42,10 +42,15 @@ Given an `input` file of comma separated numbers, the following command:
 ```
  writes to `output` all the permutations.
 
-It is possible to run the benchmarks for the two versions of the algorithm,
+Run the benchmarks for the two versions of the algorithm,
 with the following input: `[1,2,3,4,5,6,7,8,9,10]`
 ```shell
 cargo bench
+```
+
+Visualize the code documentation:
+```shell
+cargo doc --open --document-private-items
 ```
 
 ## External Libraries

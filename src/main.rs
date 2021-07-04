@@ -1,3 +1,22 @@
+//! # The `perm` entry point.
+//!
+//! Read the input from `stdin` and generate the permutations to `stdout`.
+//!
+//! A valid input is expected to contain only comma separated numbers.
+//! The permutations are computed sequentially in chunks of a given size,
+//! and written to `stdout` in a new thread.
+//! In this way the blocking I/O operations do not block the computations of the next chunk.
+//!
+//! The chunk size is such that to have `OPTIMAL_THREADS_NUMBER` total threads.
+//! This value has been found empirically after some benchmarks on my pc.
+//!
+//! If the input text is short enough (`PERMUTATION_FIXED_LENGTH=128` elements) is is possible to use an optimized version of the algorithm.
+//! otherwise it fallbacks to the slower version.
+//!
+//! # Panic
+//!
+//! If the input is empty or does not contain comma separated numbers
+
 use std::cmp::max;
 use std::convert::TryInto;
 use std::io::{self, BufRead, Write};

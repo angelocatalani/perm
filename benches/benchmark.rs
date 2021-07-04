@@ -1,3 +1,7 @@
+//! # Benchmarks
+//!
+//! Benchmark the two versions of the algorithm.
+
 use std::thread;
 use std::thread::JoinHandle;
 
