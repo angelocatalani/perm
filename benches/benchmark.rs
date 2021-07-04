@@ -15,7 +15,7 @@ fn permutations_into_chunks(c: &mut Criterion) {
         b.iter(|| {
             // linter warning forces the sequential execution
             let handles = Permutations::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-                .into_chunks(1000000)
+                .into_chunks(100001230)
                 .map(generate_string_new_thread)
                 .collect::<Vec<JoinHandle<String>>>();
             handles.into_iter().map(|h| h.join()).for_each(drop);
@@ -28,7 +28,7 @@ fn permutations_into_optimized_chunks(c: &mut Criterion) {
         b.iter(|| {
             // linter warning forces the sequential execution
             let handles = Permutations::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-                .into_optimized_chunks(1000000)
+                .into_optimized_chunks(100000)
                 .map(generate_string_new_thread)
                 .collect::<Vec<JoinHandle<String>>>();
             handles.into_iter().map(|h| h.join()).for_each(drop);
