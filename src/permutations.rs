@@ -198,7 +198,6 @@ mod tests {
     ) {
         let mut optimized_permutations = Permutations::new(values.0.clone())
             .into_optimized_chunks(1)
-            .unwrap()
             .map(|c| c.to_string())
             .collect::<Vec<String>>();
         optimized_permutations.sort();
@@ -215,7 +214,6 @@ mod tests {
         let mut optimized_permutations =
             Permutations::new(values.0.iter().map(|v| v.as_str()).collect())
                 .into_optimized_chunks(1)
-                .unwrap()
                 .map(|c| c.to_string())
                 .collect::<Vec<String>>();
         optimized_permutations.sort();
@@ -228,13 +226,11 @@ mod tests {
     #[test]
     fn empty_permutation_is_computed_correctly() {
         let permutations = Permutations::<i32>::new(vec![])
-            .into_optimized_chunks(2)
-            .unwrap()
+            .into_chunks(2)
             .map(|c| c.to_string())
             .collect::<Vec<String>>();
         let optimized_permutations = Permutations::<i32>::new(vec![])
             .into_optimized_chunks(2)
-            .unwrap()
             .map(|c| c.to_string())
             .collect::<Vec<String>>();
         assert!(permutations.is_empty());
@@ -245,7 +241,6 @@ mod tests {
     fn optimized_permutations_of_128_duplicates_are_computed_correctly() {
         let permutations = Permutations::new([0; 128].to_vec())
             .into_optimized_chunks(1)
-            .unwrap()
             .map(|c| c.to_string())
             .collect::<Vec<String>>();
 
@@ -257,8 +252,8 @@ mod tests {
 
     #[test]
     fn optimized_permutations_of_129_values_cannot_be_computed() {
-        let permutations = Permutations::new([0; 129].to_vec()).into_optimized_chunks(1);
-        assert!(permutations.is_err());
+        let permutations = Permutations::new([0; 129].to_vec());
+        assert!(!permutations.can_be_optimized());
     }
 
     #[test]

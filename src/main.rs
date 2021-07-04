@@ -30,6 +30,7 @@ fn main() {
         eprintln!("Using normal iterator");
         generate_permutations(permutations.into_chunks(chunk_size))
     }
+    eprintln!("Done")
 }
 
 fn factorial(n: usize) -> usize {
@@ -52,8 +53,8 @@ fn generate_optimized_permutations(iterator: IntoOptimizedChunks<&str>) {
             })
             .collect::<Vec<_>>();
 
-        handles.into_iter().for_each(|v| {
-            v.join()
+        handles.into_iter().for_each(|h| {
+            h.join()
                 .expect("Error waiting optimized_permutations to terminate");
         })
     })
@@ -71,8 +72,8 @@ fn generate_permutations(iterator: IntoChunks<&str>) {
                 })
             })
             .collect::<Vec<_>>();
-        handles.into_iter().for_each(|v| {
-            v.join()
+        handles.into_iter().for_each(|h| {
+            h.join()
                 .expect("Error waiting generate_permutations to terminate");
         })
     })
