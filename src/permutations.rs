@@ -239,16 +239,10 @@ mod tests {
 
     #[test]
     fn empty_permutation_is_computed_correctly() {
-        let permutations = Permutations::<i32>::new(vec![])
-            .into_chunks(2)
-            .map(|c| c.to_string())
-            .collect::<Vec<String>>();
-        let optimized_permutations = Permutations::<i32>::new(vec![])
-            .into_optimized_chunks(2)
-            .map(|c| c.to_string())
-            .collect::<Vec<String>>();
-        assert!(permutations.is_empty());
-        assert!(optimized_permutations.is_empty());
+        let mut permutations = Permutations::<i32>::new(vec![]).into_chunks(2);
+        let mut optimized_permutations = Permutations::<i32>::new(vec![]).into_optimized_chunks(2);
+        assert!(permutations.next().is_none());
+        assert!(optimized_permutations.next().is_none());
     }
 
     #[test]

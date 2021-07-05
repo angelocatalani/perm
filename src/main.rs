@@ -59,7 +59,8 @@ fn factorial(n: usize) -> usize {
         factorial(n - 1) * n
     }
 }
-
+// first collect the handles and the join.
+#[allow(clippy::needless_collect)]
 fn generate_optimized_permutations(iterator: IntoOptimizedChunks<&str>) {
     crossbeam::scope(|scope| {
         let handles = iterator
@@ -80,6 +81,8 @@ fn generate_optimized_permutations(iterator: IntoOptimizedChunks<&str>) {
     .expect("Error generating optimized permutations")
 }
 
+// first collect the handles and the join.
+#[allow(clippy::needless_collect)]
 fn generate_permutations(iterator: IntoChunks<&str>) {
     crossbeam::scope(|scope| {
         let handles = iterator

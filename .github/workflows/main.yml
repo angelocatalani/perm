@@ -60,3 +60,4 @@ jobs:
         with:
           command: clippy
           args: --all-targets --all-features --workspace -- -D warnings
+

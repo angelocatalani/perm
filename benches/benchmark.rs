@@ -10,10 +10,10 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use perm::Permutations;
 
 fn generate_string_new_thread<T: 'static + ToString + Send + Sync>(chunk: T) -> JoinHandle<String> {
-    let handle = thread::spawn(move || chunk.to_string());
-    handle
+    thread::spawn(move || chunk.to_string())
 }
-
+// first collect the handles and the join.
+#[allow(clippy::needless_collect)]
 fn permutations_into_chunks(c: &mut Criterion) {
     c.bench_function("Permutation IntoChucks", |b| {
         b.iter(|| {
@@ -26,7 +26,8 @@ fn permutations_into_chunks(c: &mut Criterion) {
         })
     });
 }
-
+// first collect the handles and the join.
+#[allow(clippy::needless_collect)]
 fn permutations_into_optimized_chunks(c: &mut Criterion) {
     c.bench_function("Permutation IntoOptimizedChucks", |b| {
         b.iter(|| {
