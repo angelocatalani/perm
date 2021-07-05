@@ -126,7 +126,7 @@ To add a job we pay a constant cost: `c=O(1)`.
 
 If we denote with `T(n)` the number of jobs added to the list with `n` distinct values,
 we have the following recurrence expression:
-`T(n)=n+(n-1)*T(n-1)=n+n*(n-1)+n(n-1)(n-2)+...+1, T(1)=c` that can be solved with `WolframAlpha`:
+`T(n)=n+(n)*T(n-1)=n+n*(n-1)+n(n-1)(n-2)+...+1, T(1)=c` that can be solved with `WolframAlpha`:
 `T(n)=n!*c`, where `c` is a constant.
 
 This means the time complexity is: `O(n!)`.
