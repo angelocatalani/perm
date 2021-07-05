@@ -149,7 +149,7 @@ At the `i-th` iteration we have:
 `job_queue_length(i) = i*n - (1+2+3+...+(i-1) + (i-1)) = i*n - (i-1)*(i-2)/2 - (i-1)`.
 
 At the last iteration, with `i=N`:
-`job_queue_length(i)=N^2-(N-1)(N-2)/2-N+1`.
+`job_queue_length(N)=N^2-(N-1)(N-2)/2-N+1`.
 
 This means the space complexity is `O(n^2)`.
 Unfortunately, it is more complex than the classical recursive algorithms that has a linear,
