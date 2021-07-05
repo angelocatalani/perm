@@ -152,7 +152,7 @@ At the last iteration, with `i=N`:
 `job_queue_length(i)=N^2-(N-1)(N-2)/2-N+1`.
 
 This means the space complexity is `O(n^2)`.
-Unfortunately, it is more complex that the classical recursive algorithms that has a linear,
+Unfortunately, it is more complex than the classical recursive algorithms that has a linear,
 space complexity since it does not need to add the stack frames of all the children nodes.
 
 
