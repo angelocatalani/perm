@@ -84,11 +84,11 @@ mod tests {
     use super::*;
 
     #[derive(Clone, Debug)]
-    struct RandomIntegersWithTwoDuplicates(Vec<i32>);
+    struct RandomIntegersWithDuplicates(Vec<i32>);
 
-    impl Arbitrary for RandomIntegersWithTwoDuplicates {
+    impl Arbitrary for RandomIntegersWithDuplicates {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
-            let random_values: [i32; 4] = Faker.fake_with_rng(g);
+            let random_values: [i32; 5] = Faker.fake_with_rng(g);
             let mut values = random_values.to_vec();
             (0..2).for_each(|_| values.push(random_values[rand::thread_rng().gen_range(0..4)]));
             Self(random_values.to_vec())
@@ -96,11 +96,11 @@ mod tests {
     }
 
     #[derive(Clone, Debug)]
-    struct RandomStringsWithTwoDuplicates(Vec<String>);
+    struct RandomStringsWithDuplicates(Vec<String>);
 
-    impl Arbitrary for RandomStringsWithTwoDuplicates {
+    impl Arbitrary for RandomStringsWithDuplicates {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
-            let random_values: [String; 4] = Faker.fake_with_rng(g);
+            let random_values: [String; 5] = Faker.fake_with_rng(g);
             let mut values = random_values.to_vec();
             (0..2).for_each(|_| {
                 values.push(random_values[rand::thread_rng().gen_range(0..4)].clone())
@@ -187,7 +187,7 @@ mod tests {
     }
 
     #[quickcheck_macros::quickcheck]
-    fn permutations_of_integers_are_computed_correctly(values: RandomIntegersWithTwoDuplicates) {
+    fn permutations_of_integers_are_computed_correctly(values: RandomIntegersWithDuplicates) {
         let mut permutations = Permutations::new(values.0.clone())
             .into_chunks(1)
             .map(|c| c.to_string())
@@ -197,7 +197,7 @@ mod tests {
     }
 
     #[quickcheck_macros::quickcheck]
-    fn permutations_of_strings_are_computed_correctly(values: RandomStringsWithTwoDuplicates) {
+    fn permutations_of_strings_are_computed_correctly(values: RandomStringsWithDuplicates) {
         let mut permutations = Permutations::new(values.0.iter().map(|v| v.as_str()).collect())
             .into_chunks(1)
             .map(|c| c.to_string())
@@ -208,7 +208,7 @@ mod tests {
 
     #[quickcheck_macros::quickcheck]
     fn optimized_permutations_of_integers_are_computed_correctly(
-        values: RandomIntegersWithTwoDuplicates,
+        values: RandomIntegersWithDuplicates,
     ) {
         let mut optimized_permutations = Permutations::new(values.0.clone())
             .into_optimized_chunks(1)
@@ -223,7 +223,7 @@ mod tests {
 
     #[quickcheck_macros::quickcheck]
     fn optimized_permutations_of_strings_are_computed_correctly(
-        values: RandomStringsWithTwoDuplicates,
+        values: RandomStringsWithDuplicates,
     ) {
         let mut optimized_permutations =
             Permutations::new(values.0.iter().map(|v| v.as_str()).collect())
