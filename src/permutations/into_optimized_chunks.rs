@@ -42,6 +42,7 @@ pub struct IntoOptimizedChunks<T> {
     index_to_value: HashMap<usize, T>,
     permutation_size: usize,
 }
+
 // Initialize the iterator with the `job_queue` containing the root `OptimizedJob`.
 /// The root `OptimizedJob` has the compressed form of the original input value..
 impl<T: Copy + Eq + Hash> IntoOptimizedChunks<T> {
@@ -115,6 +116,7 @@ fn compress_values<T: Copy + Eq + Hash>(values: Vec<T>) -> (FixedArray, HashMap<
     }
     (compressed_values, index_to_value)
 }
+
 /// Optimized chunks of compressed permutations.
 pub struct OptimizedChunk<T> {
     /// the vector of compressed permutations
@@ -147,6 +149,7 @@ impl<T> AsMut<Vec<[usize; 128]>> for OptimizedChunk<T> {
         &mut self.permutations_compressed
     }
 }
+
 /// `Chunk` is a `Display` because it must be outputted.
 /// This is where the `index_to_value` mapping to decode a compressed permutation is used.
 impl<T: ToString> fmt::Display for OptimizedChunk<T> {

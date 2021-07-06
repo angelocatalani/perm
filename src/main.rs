@@ -40,25 +40,21 @@ fn main() {
 
     let chunk_size = max(
         16,
-        factorial(permutations.length()) / OPTIMAL_THREADS_NUMBER,
+        permutations.permutations_number() / OPTIMAL_THREADS_NUMBER,
     );
     if permutations.can_be_optimized() {
-        eprintln!("Using optimized iterator");
+        eprintln!(
+            "Using optimized iterator with chunks of size: {}",
+            chunk_size
+        );
         generate_optimized_permutations(permutations.into_optimized_chunks(chunk_size))
     } else {
-        eprintln!("Using normal iterator");
+        eprintln!("Using normal iterator with chunks of size: {}", chunk_size);
         generate_permutations(permutations.into_chunks(chunk_size))
     }
     eprintln!("Done")
 }
 
-fn factorial(n: usize) -> usize {
-    if n == 0 {
-        1
-    } else {
-        factorial(n - 1) * n
-    }
-}
 // first collect the handles and the join.
 #[allow(clippy::needless_collect)]
 fn generate_optimized_permutations(iterator: IntoOptimizedChunks<&str>) {

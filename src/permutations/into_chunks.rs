@@ -7,10 +7,11 @@
 //! It is a `AsMut` to be updated with new permutations.
 //!
 //! `Job` is the computational node to create a new permutation.
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
+
+use crate::permutations::utils::{decrease_or_remove_positive_frequency, values_with_frequency};
 
 /// Iterator over `Chunks`
 pub struct IntoChunks<T> {
@@ -24,7 +25,7 @@ impl<T: Copy + Eq + Hash> IntoChunks<T> {
     pub(crate) fn new(values: Vec<T>, size: usize) -> Self {
         let permutation_length = values.len();
         Self {
-            job_queue: vec![Job::new(values_with_frequency(values), permutation_length)],
+            job_queue: vec![Job::new(values_with_frequency(&values), permutation_length)],
             size,
         }
     }
@@ -62,15 +63,6 @@ impl<T: Copy + Eq + Hash> Iterator for IntoChunks<T> {
             Some(chunk)
         }
     }
-}
-
-/// Compute the hashmap with the frequency for each value.
-fn values_with_frequency<T: Eq + Hash>(values: Vec<T>) -> HashMap<T, usize> {
-    let mut values_with_frequency = HashMap::new();
-    for value in values {
-        *values_with_frequency.entry(value).or_insert(0) += 1;
-    }
-    values_with_frequency
 }
 
 /// Chunk of permutations.
@@ -189,23 +181,5 @@ impl<T: Copy + Eq + Hash> Job<T> {
     /// only if `is_ready()` is true.
     fn is_ready(&self) -> bool {
         self.permutation.len() == self.permutation_length
-    }
-}
-
-/// Decrease the frequency of `value` from `values_with_frequency`,
-/// and it deletes the new entry if the resulting frequency is zero.
-fn decrease_or_remove_positive_frequency<T: Copy + Hash + Eq>(
-    values_with_frequency: &mut HashMap<T, usize>,
-    value: &T,
-) {
-    match values_with_frequency.entry(*value) {
-        Entry::Occupied(mut frequency) => {
-            if *frequency.get() == 1 {
-                frequency.remove_entry();
-            } else {
-                *frequency.get_mut() -= 1
-            }
-        }
-        Entry::Vacant(_) => {}
     }
 }

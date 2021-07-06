@@ -9,9 +9,11 @@ use into_chunks::IntoChunks;
 use into_optimized_chunks::IntoOptimizedChunks;
 
 use crate::permutations::into_optimized_chunks::PERMUTATION_FIXED_LENGTH;
+use crate::permutations::utils::{factorial, values_with_frequency};
 
 pub mod into_chunks;
 pub mod into_optimized_chunks;
+mod utils;
 
 /// Permutations.
 pub struct Permutations<T: Copy> {
@@ -26,6 +28,14 @@ impl<T: Copy + Eq + Hash> Permutations<T> {
     /// Compute the length of each permutation.
     pub fn length(&self) -> usize {
         self.values.len()
+    }
+    /// Compute the total number of permutations.
+    pub fn permutations_number(&self) -> usize {
+        let values_with_frequency = values_with_frequency(&self.values);
+        let denominator = values_with_frequency
+            .iter()
+            .fold(1, |den, (_, frequency)| den * factorial(*frequency));
+        factorial(self.length()) / denominator
     }
     /// Check if the input values is short enough to use the optimized version of the algorithm.
     pub fn can_be_optimized(&self) -> bool {
@@ -144,7 +154,6 @@ mod tests {
         let correct_permutations = values
             .iter()
             .permutations(values.len())
-            .dedup()
             .unique()
             .collect::<Vec<Vec<&T>>>();
 
@@ -184,6 +193,15 @@ mod tests {
         let mut expected_permutations = generate_correct_permutations(tokens);
         expected_permutations.sort();
         assert_eq!(permutation_strings, expected_permutations)
+    }
+
+    #[quickcheck_macros::quickcheck]
+    fn total_number_of_permutations_is_computed_correctly(values: RandomIntegersWithDuplicates) {
+        let permutations = Permutations::new(values.0.clone());
+        assert_eq!(
+            permutations.permutations_number(),
+            generate_correct_permutations(values.0).len()
+        )
     }
 
     #[quickcheck_macros::quickcheck]
